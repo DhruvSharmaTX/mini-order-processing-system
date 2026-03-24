@@ -1,0 +1,42 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mini_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Password
+      MYSQL_DATABASE: mini_order_processing_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    container_name: mini_backend
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env.docker
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build: ./frontend
+    container_name: mini_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+
+volumes:
+  mysql_data:
